@@ -1,0 +1,877 @@
+[index.html](https://github.com/user-attachments/files/32106606/index.html)
+<!DOCTYPE html>
+<html lang="ckb" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>لیستەکە</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0e1015;
+    --bg-elev:#161922;
+    --bg-elev-2:#1c202b;
+    --line:#282d3a;
+    --line-soft:#20242f;
+    --ink:#e9e7e2;
+    --ink-dim:#9aa0ac;
+    --ink-faint:#666d7d;
+    --gold:#c9a24b;
+    --gold-dim:#8a7539;
+    --done:#5aa06f;
+    --done-bg:rgba(90,160,111,0.12);
+    --pending:#d9a441;
+    --pending-bg:rgba(217,164,65,0.12);
+    --wait:#7d84a0;
+    --wait-bg:rgba(125,132,160,0.12);
+    --high:#c1584f;
+    --high-bg:rgba(193,88,79,0.12);
+    --med:#c99a3a;
+    --radius:16px;
+    --shadow: 0 14px 34px rgba(0,0,0,0.4);
+    --glass-bg: rgba(30,34,45,0.42);
+    --glass-bg-soft: rgba(30,34,45,0.3);
+    --glass-border: rgba(255,255,255,0.09);
+    --glass-highlight: rgba(255,255,255,0.22);
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    min-height:100vh;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'IBM Plex Sans Arabic', 'Segoe UI', Tahoma, sans-serif;
+    line-height:1.7;
+    -webkit-font-smoothing:antialiased;
+    position:relative;
+    overflow-x:hidden;
+  }
+
+  .bg-blob{
+    position:fixed; border-radius:50%; filter:blur(90px);
+    z-index:-1; pointer-events:none;
+  }
+  .bg-blob.b1{ width:560px; height:560px; top:-220px; left:-160px;
+    background:radial-gradient(circle, rgba(201,162,75,0.28), transparent 70%); }
+  .bg-blob.b2{ width:620px; height:620px; top:120px; right:-260px;
+    background:radial-gradient(circle, rgba(90,120,180,0.22), transparent 70%); }
+  .bg-blob.b3{ width:520px; height:520px; bottom:-260px; left:20%;
+    background:radial-gradient(circle, rgba(90,160,111,0.16), transparent 70%); }
+
+  a{color:inherit;}
+
+  /* ---------- Toast Notification (moved lower) ---------- */
+  .toast{
+    position:fixed;
+    top:110px;               /* moved down so it doesn't cover the navbar */
+    left:50%;
+    transform:translateX(-50%) translateY(-24px) scale(0.94);
+    z-index:120;             /* below topbar (50) but still above content */
+    display:flex;
+    align-items:center;
+    gap:14px;
+    padding:16px 22px 16px 18px;
+    border-radius:18px;
+    background:rgba(28,42,36,0.55);
+    -webkit-backdrop-filter: blur(26px) saturate(190%);
+    backdrop-filter: blur(26px) saturate(190%);
+    border:1px solid rgba(90,160,111,0.28);
+    box-shadow:
+      0 22px 55px -14px rgba(0,0,0,0.8),
+      0 0 0 1px rgba(255,255,255,0.04) inset,
+      0 1px 0 rgba(255,255,255,0.09) inset;
+    color:#e9f7ee;
+    font-size:14.5px;
+    font-weight:500;
+    letter-spacing:.2px;
+    opacity:0;
+    pointer-events:none;
+    transition:
+      opacity .6s cubic-bezier(.16,.8,.24,1),
+      transform .6s cubic-bezier(.16,.8,.24,1);
+    max-width:calc(100% - 32px);
+  }
+
+  .toast.show{
+    opacity:1;
+    transform:translateX(-50%) translateY(0) scale(1);
+  }
+
+  .toast::before{
+    content:"";
+    position:absolute;
+    inset:0 0 auto 0;
+    height:1px;
+    border-radius:18px 18px 0 0;
+    background:linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+    pointer-events:none;
+  }
+
+  .toast-icon{
+    width:40px;
+    height:40px;
+    border-radius:50%;
+    flex-shrink:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:radial-gradient(circle at 35% 30%, rgba(90,160,111,0.6), rgba(90,160,111,0.2));
+    border:1px solid rgba(90,160,111,0.45);
+    box-shadow:
+      0 0 20px rgba(90,160,111,0.4),
+      inset 0 1px 0 rgba(255,255,255,0.18);
+  }
+
+  .toast-icon svg{
+    width:21px;
+    height:21px;
+    stroke:#eafff2;
+    stroke-width:2.7;
+    fill:none;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+    filter:drop-shadow(0 0 5px rgba(90,160,111,0.7));
+  }
+
+  .toast-text{
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+    line-height:1.4;
+  }
+
+  .toast-title{
+    font-weight:600;
+    font-size:14.5px;
+    color:#f0fff6;
+  }
+
+  .toast-sub{
+    font-size:12px;
+    color:rgba(200,230,214,0.7);
+    font-weight:400;
+  }
+
+  .toast-progress{
+    position:absolute;
+    bottom:0;
+    right:0;
+    height:2.5px;
+    width:100%;
+    border-radius:0 0 18px 18px;
+    background:linear-gradient(90deg, transparent, rgba(90,160,111,0.9));
+    transform-origin:right center;
+    transform:scaleX(1);
+    opacity:0.9;
+  }
+
+  .toast.show .toast-progress{
+    animation:toastProgress 4.2s linear forwards;
+  }
+
+  @keyframes toastProgress{
+    from{ transform:scaleX(1); }
+    to{ transform:scaleX(0); }
+  }
+
+  /* Responsive tweaks for the toast */
+  @media (max-width:760px){
+    .toast{
+      top:96px;
+      padding:14px 18px 14px 14px;
+      gap:12px;
+      font-size:13.5px;
+      border-radius:16px;
+    }
+    .toast-icon{ width:36px; height:36px; }
+    .toast-icon svg{ width:19px; height:19px; }
+    .toast-title{ font-size:13.5px; }
+    .toast-sub{ font-size:11.5px; }
+  }
+
+  @media (max-width:520px){
+    .toast{
+      top:88px;
+      left:12px;
+      right:12px;
+      transform:translateX(0) translateY(-20px) scale(0.96);
+      max-width:none;
+      padding:13px 15px 13px 13px;
+      gap:10px;
+    }
+    .toast.show{
+      transform:translateX(0) translateY(0) scale(1);
+    }
+    .toast-icon{ width:32px; height:32px; }
+    .toast-icon svg{ width:17px; height:17px; }
+    .toast-title{ font-size:13px; }
+    .toast-sub{ display:none; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .toast{ transition:none; }
+    .toast.show .toast-progress{ animation:none; opacity:0; }
+  }
+
+  /* ---------- Glass surfaces ---------- */
+  .glass{
+    position:relative;
+    background:var(--glass-bg);
+    border:1px solid var(--glass-border);
+    -webkit-backdrop-filter: blur(22px) saturate(150%);
+    backdrop-filter: blur(22px) saturate(150%);
+  }
+  .glass::before{
+    content:"";
+    position:absolute; inset:0 0 auto 0; height:1px;
+    background:linear-gradient(90deg, transparent, var(--glass-highlight), transparent);
+    pointer-events:none;
+  }
+
+  /* ---------- Top bar ---------- */
+  .topbar{
+    position:sticky; top:0; z-index:50;
+    -webkit-backdrop-filter: blur(18px) saturate(140%);
+    backdrop-filter: blur(18px) saturate(140%);
+    background:rgba(14,16,21,0.6);
+    border-bottom:1px solid var(--glass-border);
+  }
+  .scroll-progress{
+    position:absolute; bottom:-1px; right:0; height:2px; width:0%;
+    background:linear-gradient(90deg, var(--gold-dim), var(--gold));
+  }
+  .topbar-inner{
+    max-width:1180px; margin:0 auto;
+    padding:14px 24px;
+    display:flex; align-items:center; justify-content:space-between;
+    gap:16px;
+  }
+  .brand{
+    display:flex; align-items:center; gap:10px;
+    font-weight:700; font-size:15px; letter-spacing:.2px;
+  }
+  .brand-mark{
+    width:30px; height:30px; border-radius:8px;
+    background:linear-gradient(155deg, var(--gold), var(--gold-dim));
+    display:flex; align-items:center; justify-content:center;
+    color:#181307; font-weight:700; font-size:13px; flex-shrink:0;
+  }
+  .nav-pills{
+    display:flex; gap:6px; overflow-x:auto; scrollbar-width:none;
+    padding-bottom:2px;
+  }
+  .nav-pills::-webkit-scrollbar{display:none;}
+  .nav-pills a{
+    white-space:nowrap;
+    font-size:13px; color:var(--ink-dim);
+    padding:7px 14px; border-radius:100px;
+    border:1px solid var(--line);
+    text-decoration:none;
+    transition:border-color .15s ease, color .15s ease, background .15s ease;
+  }
+  .nav-pills a:hover{ color:var(--ink); border-color:var(--gold-dim); background:var(--bg-elev); }
+  .nav-pills a.is-active{
+    color:#181307; background:var(--gold); border-color:var(--gold);
+  }
+
+  /* ---------- Hero ---------- */
+  .hero{
+    max-width:1180px; margin:0 auto;
+    padding:56px 24px 20px;
+  }
+  .hero-eyebrow{
+    font-size:13px; color:var(--gold); font-weight:600;
+    margin:0 0 10px;
+  }
+  .hero h1{
+    font-size:clamp(28px, 4.2vw, 44px);
+    font-weight:700; margin:0 0 12px; line-height:1.25;
+    max-width:16ch;
+  }
+  .hero p{
+    color:var(--ink-dim); font-size:15.5px; max-width:62ch; margin:0;
+  }
+
+  .stat-band{
+    max-width:1180px; margin:36px auto 0; padding:0 24px;
+    display:grid; grid-template-columns:220px 1fr; gap:20px;
+  }
+  @media (max-width:760px){
+    .stat-band{ grid-template-columns:1fr; }
+  }
+
+  .ring-card, .stat-card{
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+  }
+  .ring-card{
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    padding:22px; gap:6px;
+  }
+  .ring-wrap{ position:relative; width:150px; height:150px; }
+  .ring-wrap svg{ width:100%; height:100%; transform:rotate(-90deg); }
+  .ring-track{ fill:none; stroke:var(--line); stroke-width:11; }
+  .ring-fill{ fill:none; stroke:var(--gold); stroke-width:11; stroke-linecap:round;
+    transition:stroke-dashoffset 1s cubic-bezier(.4,0,.2,1); }
+  .ring-label{
+    position:absolute; inset:0; display:flex; flex-direction:column;
+    align-items:center; justify-content:center;
+  }
+  .ring-pct{ font-size:26px; font-weight:700; }
+  .ring-sub{ font-size:11.5px; color:var(--ink-faint); }
+  .ring-title{ font-size:13px; color:var(--ink-dim); margin-top:8px; }
+
+  .stat-grid{
+    display:grid; grid-template-columns:repeat(4,1fr); gap:14px;
+  }
+  @media (max-width:760px){ .stat-grid{ grid-template-columns:repeat(2,1fr); } }
+
+  .stat-card{ padding:18px 18px; }
+  .stat-num{ font-size:28px; font-weight:700; }
+  .stat-name{ font-size:12.5px; color:var(--ink-dim); margin-top:4px; }
+  .stat-dot{ width:8px; height:8px; border-radius:50%; display:inline-block; margin-left:6px; }
+  .stat-card.done .stat-num{ color:var(--done); }
+  .stat-card.pending .stat-num{ color:var(--pending); }
+  .stat-card.wait .stat-num{ color:var(--wait); }
+  .stat-card.high .stat-num{ color:var(--high); }
+
+  .segbar{ height:8px; border-radius:100px; overflow:hidden; display:flex; margin-top:22px; background:var(--line-soft); }
+  .segbar span{ height:100%; transition:width .8s ease; }
+
+  /* ---------- Sections ---------- */
+  .section{
+    max-width:1180px; margin:0 auto; padding:34px 24px;
+    scroll-margin-top:74px;
+  }
+  .section-head{
+    display:flex; align-items:baseline; gap:12px; margin-bottom:16px;
+  }
+  .section-num{
+    font-family:'IBM Plex Sans Arabic', sans-serif;
+    font-size:13px; font-weight:700; color:var(--gold);
+    border:1px solid var(--gold-dim); border-radius:8px;
+    width:28px; height:28px; display:flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+    background:rgba(201,162,75,0.08);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+  }
+  .section-head h2{ font-size:19px; font-weight:700; margin:0; }
+  .section-desc{ color:var(--ink-faint); font-size:13px; margin:0 0 16px 40px; }
+
+  .table-card{
+    border-radius:var(--radius);
+    overflow:hidden;
+    box-shadow:var(--shadow);
+  }
+  .table-scroll{ overflow-x:auto; }
+  table{ width:100%; border-collapse:collapse; min-width:560px; }
+  thead th{
+    text-align:right; font-size:12.5px; font-weight:600; color:var(--ink-faint);
+    padding:13px 18px; border-bottom:1px solid var(--glass-border);
+    background:rgba(255,255,255,0.02);
+  }
+  tbody td{
+    padding:13px 18px; font-size:14.5px; border-bottom:1px solid var(--line-soft);
+    vertical-align:middle;
+  }
+  tbody tr:last-child td{ border-bottom:none; }
+  tbody tr.is-done td{ color:var(--ink-faint); }
+  tbody tr.is-done .task-name{ text-decoration:line-through; text-decoration-color:var(--line); }
+  tbody tr:hover td{ background:rgba(255,255,255,0.015); }
+
+  th.col-check, td.col-check{ width:44px; text-align:center; padding-left:8px; padding-right:16px; }
+  th.col-status, td.col-status{ width:150px; }
+  th.col-priority, td.col-priority{ width:130px; }
+
+  .chk{
+    appearance:none; width:19px; height:19px; border-radius:6px;
+    border:1.5px solid var(--line); background:var(--bg-elev-2);
+    cursor:pointer; position:relative; flex-shrink:0;
+    transition:border-color .15s ease, background .15s ease;
+  }
+  .chk:checked{ background:var(--done); border-color:var(--done); }
+  .chk:checked::after{
+    content:""; position:absolute; right:5px; top:1px; width:5px; height:10px;
+    border:solid #0e1015; border-width:0 2px 2px 0; transform:rotate(35deg);
+  }
+
+  .badge{
+    display:inline-flex; align-items:center; gap:7px;
+    font-size:12.5px; font-weight:500; padding:5px 12px; border-radius:100px;
+    white-space:nowrap;
+  }
+  .badge .dot{ width:7px; height:7px; border-radius:50%; flex-shrink:0; }
+  .badge.done{ background:var(--done-bg); color:var(--done); }
+  .badge.done .dot{ background:var(--done); }
+  .badge.pending{ background:var(--pending-bg); color:var(--pending); }
+  .badge.pending .dot{ background:var(--pending); }
+  .badge.wait{ background:var(--wait-bg); color:var(--wait); }
+  .badge.wait .dot{ background:var(--wait); }
+  .badge.high{ background:var(--high-bg); color:var(--high); }
+  .badge.high .dot{ background:var(--high); }
+  .badge.med{ background:rgba(201,154,58,0.12); color:var(--med); }
+  .badge.med .dot{ background:var(--med); }
+
+  /* ---------- Footer stepper ---------- */
+  .flow{
+    max-width:1180px; margin:20px auto 60px; padding:30px 24px;
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+  }
+  .flow h3{ font-size:15px; margin:0 0 22px; color:var(--ink-dim); font-weight:600; }
+  .stepper{
+    display:flex; align-items:flex-start; overflow-x:auto; gap:0; padding-bottom:6px;
+  }
+  .step{
+    display:flex; flex-direction:column; align-items:center; text-align:center;
+    min-width:118px; position:relative; flex-shrink:0;
+  }
+  .step-dot{
+    width:34px; height:34px; border-radius:50%; border:1.5px solid var(--gold-dim);
+    background:var(--bg-elev-2); color:var(--gold);
+    display:flex; align-items:center; justify-content:center;
+    font-size:13px; font-weight:700; margin-bottom:10px;
+  }
+  .step-label{ font-size:12.5px; color:var(--ink-dim); max-width:110px; line-height:1.5; }
+  .step-line{
+    position:absolute; top:17px; height:1.5px; background:var(--line);
+    width:100%; right:50%; z-index:-1;
+  }
+  .step:first-child .step-line{ display:none; }
+
+  footer.page-foot{
+    text-align:center; color:var(--ink-faint); font-size:12.5px;
+    padding:0 24px 50px;
+  }
+
+  @media (max-width:640px){
+    .section-desc{ margin-right:0; }
+
+    .table-scroll{ overflow-x:visible; }
+    table{ min-width:0; }
+    thead{
+      position:absolute; width:1px; height:1px; overflow:hidden;
+      clip:rect(0,0,0,0); white-space:nowrap; border:0;
+    }
+    tbody, tr, td{ display:block; width:100%; }
+    tbody tr{
+      position:relative;
+      padding:16px 18px;
+      border-bottom:1px solid var(--glass-border);
+    }
+    tbody td{
+      border:none; padding:3px 0;
+    }
+    tbody td.task-name{
+      font-size:15px; font-weight:600; color:var(--ink);
+      padding-left:34px; margin-bottom:4px;
+    }
+    tbody tr.is-done td.task-name{ color:var(--ink-faint); }
+    tbody td.col-check{
+      position:absolute; top:16px; left:16px; width:auto; padding:0;
+    }
+    tbody td:not(.task-name):not(.col-check){
+      display:flex; align-items:center; justify-content:space-between;
+      font-size:13px; color:var(--ink-dim); gap:12px;
+    }
+    tbody td:not(.task-name):not(.col-check)::before{
+      content:attr(data-label);
+      color:var(--ink-faint); font-size:12px; flex-shrink:0;
+    }
+    td.col-status, td.col-priority{ width:100%; }
+  }
+
+  /* ---------- Scroll reveal ---------- */
+  .reveal{
+    opacity:0; transform:translateY(22px);
+    transition:opacity .8s cubic-bezier(.16,.8,.24,1), transform .8s cubic-bezier(.16,.8,.24,1);
+    transition-delay:var(--reveal-delay, 0s);
+  }
+  .reveal.in-view{ opacity:1; transform:translateY(0); }
+
+  @media (prefers-reduced-motion: reduce){
+    html{ scroll-behavior:auto; }
+    .reveal{ opacity:1; transform:none; transition:none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ✅ Toast Notification (positioned below the navbar) -->
+<div class="toast" id="successToast" role="status" aria-live="polite">
+  <div class="toast-icon">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <polyline points="20 6 9 17 4 12"></polyline>
+    </svg>
+  </div>
+  <div class="toast-text">
+    <span class="toast-title">هەموو تاسکەکان تەواو بوون بە سەرکەوتوویی</span>
+    <span class="toast-sub">پیرۆزە! هەموو هەنگاوەکان جێبەجێ کران</span>
+  </div>
+  <div class="toast-progress"></div>
+</div>
+
+<div class="bg-blob b1"></div>
+<div class="bg-blob b2"></div>
+<div class="bg-blob b3"></div>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <span class="brand-mark">YTB</span>
+      <span> لیستەکە</span>
+    </div>
+    <nav class="nav-pills">
+      <a href="#done" data-target="done">تەواوکراو</a>
+      <a href="#tomorrow" data-target="tomorrow">6/9</a>
+      <a href="#translation" data-target="translation">وەرگێڕان</a>
+      <a href="#erbil" data-target="erbil">هەولێر</a>
+      <a href="#final" data-target="final">کۆتایی</a>
+      <a href="#after" data-target="after">دوای پەسەندکردن</a>
+    </nav>
+  </div>
+  <div class="scroll-progress" id="scrollProgress"></div>
+</div>
+
+<section class="hero reveal">
+  <p class="hero-eyebrow">ئامادەسازی پێداویستیەکان</p>
+  <h1>پێداویستیەکان بۆ خۆتۆمارکردن لە زانکۆ </h1>
+  <p>هەموو هەنگاوەکانی دوای پەسەندکردنی سکۆلەرشیپەکە — لە کۆکردنەوەی بەڵگەنامەکانەوە تا پێشکەشکردنی داواکاریی ڤیزا — لێرەدا بەپێی قۆناغ ڕیزکراون. بە سەحکردنی هەر خانەیەک، ئامارەکان خۆکارانە نوێ دەبنەوە.</p>
+</section>
+
+<div class="stat-band">
+  <div class="ring-card glass reveal">
+    <div class="ring-wrap">
+      <svg viewBox="0 0 150 150">
+        <circle class="ring-track" cx="75" cy="75" r="62"></circle>
+        <circle id="ringFill" class="ring-fill" cx="75" cy="75" r="62"></circle>
+      </svg>
+      <div class="ring-label">
+        <span class="ring-pct" id="ringPct">0%</span>
+        <span class="ring-sub" id="ringFrac">0 / 0</span>
+      </div>
+    </div>
+    <span class="ring-title">ڕێژەی تەواوبوون</span>
+  </div>
+
+  <div>
+    <div class="stat-grid">
+      <div class="stat-card glass reveal done" style="--reveal-delay:.05s">
+        <div class="stat-num" id="countDone">0</div>
+        <div class="stat-name">تەواوکراو</div>
+      </div>
+      <div class="stat-card glass reveal pending" style="--reveal-delay:.12s">
+        <div class="stat-num" id="countPending">0</div>
+        <div class="stat-name">ماوە بکرێت</div>
+      </div>
+      <div class="stat-card glass reveal wait" style="--reveal-delay:.19s">
+        <div class="stat-num" id="countWait">0</div>
+        <div class="stat-name">چاوەڕێی قۆناغی داهاتوو</div>
+      </div>
+      <div class="stat-card glass reveal high" style="--reveal-delay:.26s">
+        <div class="stat-num" id="countHigh">0</div>
+        <div class="stat-name">کاری زۆر گرنگ</div>
+      </div>
+    </div>
+    <div class="segbar">
+      <span id="segDone" style="background:var(--done); width:0%"></span>
+      <span id="segPending" style="background:var(--pending); width:0%"></span>
+      <span id="segWait" style="background:var(--wait); width:0%"></span>
+    </div>
+  </div>
+</div>
+
+<!-- 1. Completed -->
+<section class="section reveal" id="done">
+  <div class="section-head">
+    <span class="section-num">١</span>
+    <h2>کارە تەواوکراوەکان</h2>
+  </div>
+  <p class="section-desc">ئەو هەنگاوە سەرەتاییانەی کە تا ئێستا بەتەواوی کۆتاییان پێ هاتووە.</p>
+  <div class="table-card glass">
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr><th>کار</th><th class="col-status">دۆخ</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="task-name">پشکنینی پزیشکی و وەرگرتنی ڕاپۆرتی تەندروستی</td><td class="col-status" data-label="دۆخ"><span class="badge done"><span class="dot"></span>تەواوکراو</span></td></tr>
+          <tr><td class="task-name">پەسەندکردنی ئۆفەری سکۆلەرشیپەکە لە سیستەمی TBBS</td><td class="col-status" data-label="دۆخ"><span class="badge done"><span class="dot"></span>تەواوکراو</span></td></tr>
+          <tr><td class="task-name">ڕاستکردنەوەی ناو بەپێی پاسپۆرت: A P H   </td><td class="col-status" data-label="دۆخ"><span class="badge done"><span class="dot"></span>تەواوکراو</span></td></tr>
+          <tr><td class="task-name">خوێندنەوە و تێگەیشتن لە ڕێنماییەکانی زانکۆ و بەڵێننامەکە</td><td class="col-status" data-label="دۆخ"><span class="badge done"><span class="dot"></span>تەواوکراو</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- 2. Tomorrow -->
+<section class="section reveal" id="tomorrow">
+  <div class="section-head">
+    <span class="section-num">٢</span>
+    <h2>کارەکانی سبەی — ٦ی ئەیلول</h2>
+  </div>
+  <p class="section-desc">ئەو کارە بەپەلە و زۆر گرنگانەی کە پێویستە سبەی جێبەجێ بکرێن.</p>
+  <div class="table-card glass">
+    <div class="table-scroll">
+      <table data-group="checkable">
+        <thead>
+          <tr><th class="col-check"></th><th>کار</th><th class="col-priority">ئاستی گرنگی</th></tr>
+        </thead>
+        <tbody>
+          <tr data-key="t1"><td class="col-check"><input type="checkbox" class="chk" checked></td><td class="task-name">وەرگرتنەوەی پاسپۆرتە نوێیەکە</td><td class="col-priority" data-label="ئاستی گرنگی"><span class="badge high"><span class="dot"></span>زۆر گرنگ</span></td></tr>
+          <tr data-key="t2"><td class="col-check"><input type="checkbox" class="chk" checked></td><td class="task-name">سەردانیکردنی زانکۆ و وەرگرتنی کۆپیی ئەسڵیی بڕوانامە</td><td class="col-priority" data-label="ئاستی گرنگی"><span class="badge high"><span class="dot"></span>زۆر گرنگ</span></td></tr>
+          <tr data-key="t3"><td class="col-check"><input type="checkbox" class="chk" checked></td><td class="task-name">وەرگرتنی ترانسکرێپتی نمرەکان</td><td class="col-priority" data-label="ئاستی گرنگی"><span class="badge high"><span class="dot"></span>زۆر گرنگ</span></td></tr>
+          <tr data-key="t4"><td class="col-check"><input type="checkbox" class="chk" checked></td><td class="task-name">چوونە ناو سیستەمی TBBS</td><td class="col-priority" data-label="ئاستی گرنگی"><span class="badge med"><span class="dot"></span>گرنگ</span></td></tr>
+          <tr data-key="t5"><td class="col-check"><input type="checkbox" class="chk" checked></td><td class="task-name">پرینتکردنی بەڵێننامە (Commitment Letter)</td><td class="col-priority" data-label="ئاستی گرنگی"><span class="badge high"><span class="dot"></span>زۆر گرنگ</span></td></tr>
+          <tr data-key="t6"><td class="col-check"><input type="checkbox" class="chk" checked></td><td class="task-name">واژۆکردنی بەڵێننامەکە بە قەڵەم لە ماڵەوە</td><td class="col-priority" data-label="ئاستی گرنگی"><span class="badge high"><span class="dot"></span>زۆر گرنگ</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- 3. Translation -->
+<section class="section reveal" id="translation">
+  <div class="section-head">
+    <span class="section-num">٣</span>
+    <h2>قۆناغی وەرگێڕان</h2>
+  </div>
+  <p class="section-desc">وەرگێڕانی سەرجەم بەڵگەنامەکان بۆ زمانی تورکی، وە وەرگرتنی سێ کۆپی بۆ هەر یەکێکیان.</p>
+  <div class="table-card glass">
+    <div class="table-scroll">
+      <table data-group="checkable">
+        <thead>
+          <tr><th class="col-check"></th><th>بەڵگەنامە</th><th>کار</th></tr>
+        </thead>
+        <tbody>
+          <tr data-key="tr1"><td class="col-check"><input type="checkbox" class="chk" checked></td><td class="task-name">پاسپۆرت</td><td data-label="کار">وەرگێڕانی بۆ زمانی تورکی</td></tr>
+          <tr data-key="tr2"><td class="col-check"><input type="checkbox" class="chk" checked></td><td class="task-name">بڕوانامە</td><td data-label="کار">وەرگێڕانی بۆ زمانی تورکی</td></tr>
+          <tr data-key="tr3"><td class="col-check"><input type="checkbox" class="chk" checked></td><td class="task-name">ترانسکرێپت</td><td data-label="کار">وەرگێڕانی بۆ زمانی تورکی</td></tr>
+          <tr data-key="tr4"><td class="col-check"><input type="checkbox" class="chk" checked></td><td class="task-name">ڕاپۆرتی تەندروستی</td><td data-label="کار">وەرگێڕانی بۆ زمانی تورکی</td></tr>
+          <tr data-key="tr5"><td class="col-check"><input type="checkbox" class="chk" checked></td><td class="task-name">سەرجەم بەڵگەنامەکان</td><td data-label="کار">داواکردنی ٣ کۆپی بۆ هەر وەرگێڕانێک</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- 4. Erbil -->
+<section class="section reveal" id="erbil">
+  <div class="section-head">
+    <span class="section-num">٤</span>
+    <h2>سەفەری هەولێر — قۆناغی مۆرکردن</h2>
+  </div>
+  <p class="section-desc">پەسەندکردن و مۆرکردنی بەڵگەنامە وەرگێڕدراوەکان لە فەرمانگە فەرمییەکان.</p>
+  <div class="table-card glass">
+    <div class="table-scroll">
+      <table data-group="checkable">
+        <thead>
+          <tr><th class="col-check"></th><th>کار</th><th>شوێن</th></tr>
+        </thead>
+        <tbody>
+          <tr data-key="e1"><td class="col-check"><input type="checkbox" class="chk" checked></td><td class="task-name">مۆرکردنی ڕاپۆرتی تەندروستیی وەرگێڕدراو</td><td data-label="شوێن">وەزارەتی تەندروستی</td></tr>
+          <tr data-key="e2"><td class="col-check"><input type="checkbox" class="chk" checked></td><td class="task-name">مۆرکردنی بڕوانامە و ترانسکرێپتی وەرگێڕدراو</td><td data-label="شوێن">وەزارەتی خوێندنی باڵا</td></tr>
+          <tr data-key="e3"><td class="col-check"><input type="checkbox" class="chk" checked></td><td class="task-name">لێدانی مۆری دەرەوە بۆ سەرجەم بەڵگەنامە مۆرکراوەکان</td><td data-label="شوێن">فەرمانگەی پەیوەندییە نێودەوڵەتییەکان</td></tr>
+          <tr data-key="e4"><td class="col-check"><input type="checkbox" class="chk" checked></td><td class="task-name">پەسەندکردنی کۆتایی بەڵگەنامەکان لەگەڵ بەڵێننامە واژۆکراوەکە</td><td data-label="شوێن">کونسوڵگەریی گشتیی تورکیا</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- 5. Final -->
+<section class="section reveal" id="final">
+  <div class="section-head">
+    <span class="section-num">٥</span>
+    <h2>قۆناغی کۆتایی — پێش ٢٠ی ئەیلول</h2>
+  </div>
+  <p class="section-desc">سکانکردنەوە و بارکردنی بەڵگەنامەکان لە سیستەمی TBBS پێش وادەی کۆتایی.</p>
+  <div class="table-card glass">
+    <div class="table-scroll">
+      <table data-group="checkable">
+        <thead>
+          <tr><th class="col-check"></th><th>کار</th></tr>
+        </thead>
+        <tbody>
+          <tr data-key="f1"><td class="col-check"><input type="checkbox" class="chk" checked></td><td class="task-name">سکانکردنەوەی بەڵێننامە پەسەندکراوەکە</td></tr>
+          <tr data-key="f2"><td class="col-check"><input type="checkbox" class="chk" checked></td><td class="task-name">سکانکردنەوەی ڕاپۆرتی تەندروستی</td></tr>
+          <tr data-key="f3"><td class="col-check"><input type="checkbox" class="chk" checked></td><td class="task-name">بارکردنی (Upload) بەڵگەنامەکان لە سیستەمی TBBS</td></tr>
+          <tr data-key="f4"><td class="col-check"><input type="checkbox" class="chk" checked></td><td class="task-name">داگرتنی دوگمەی سەوزی پەسەندکردن (Confirm)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- 6. After -->
+<section class="section reveal" id="after">
+  <div class="section-head">
+    <span class="section-num">٦</span>
+    <h2>دوای پەسەندکردنی کۆتایی</h2>
+  </div>
+  <p class="section-desc">ئەو هەنگاوانەی کە ماون و بەندن بە وەڵامی YTBـەوە.</p>
+  <div class="table-card glass">
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr><th>کار</th><th class="col-status">دۆخ</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="task-name">چاوەڕێکردنی ئیمەیڵی YTB</td><td class="col-status" data-label="دۆخ"><span class="badge done"><span class="dot"></span>تەواوکراو</span></td></tr>
+          <tr><td class="task-name">بارکردنی (Upload) بڕوانامەی زانکۆ لە سیستەمەکەدا</td><td class="col-status" data-label="دۆخ"><span class="badge done"><span class="dot"></span>تەواوکراو</span></td></tr>
+          <tr><td class="task-name">پێشکەشکردنی داواکاریی ڤیزای خوێندن</td><td class="col-status" data-label="دۆخ"><span class="badge done"><span class="dot"></span>تەواوکراو</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<div class="flow glass reveal">
+  <h3>ڕیزبەندی گشتیی قۆناغەکان</h3>
+  <div class="stepper">
+    <div class="step"><div class="step-line"></div><div class="step-dot">١</div><div class="step-label">سبەی</div></div>
+    <div class="step"><div class="step-line"></div><div class="step-dot">٢</div><div class="step-label">وەرگێڕان</div></div>
+    <div class="step"><div class="step-line"></div><div class="step-dot">٣</div><div class="step-label">هەولێر و مۆرەکان</div></div>
+    <div class="step"><div class="step-line"></div><div class="step-dot">٤</div><div class="step-label">بارکردن لە TBBS</div></div>
+    <div class="step"><div class="step-line"></div><div class="step-dot">٥</div><div class="step-label">پەسەندکردن</div></div>
+    <div class="step"><div class="step-line"></div><div class="step-dot">٦</div><div class="step-label">وەڵامی YTB</div></div>
+    <div class="step"><div class="step-line"></div><div class="step-dot">٧</div><div class="step-label">داواکاری ڤیزا</div></div>
+  </div>
+</div>
+
+<footer class="page-foot">دۆخی هەموو کارەکانت تەنها لەناو وێبگەڕەکەی خۆتدا پارێزراوە.</footer>
+
+<script>
+(function(){
+  var STORAGE_KEY = 'ytb-tracker-state-v1';
+  var state = {};
+  try { state = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; } catch(e){ state = {}; }
+
+  var checkboxes = document.querySelectorAll('.chk');
+  checkboxes.forEach(function(cb){
+    var row = cb.closest('tr');
+    var key = row.getAttribute('data-key');
+    cb.checked = true;
+    row.classList.add('is-done');
+    state[key] = true;
+
+    cb.addEventListener('change', function(){
+      state[key] = cb.checked;
+      row.classList.toggle('is-done', cb.checked);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      recompute();
+    });
+  });
+
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+
+  var FIXED_DONE = 4;
+  var FIXED_WAIT = 3;
+  var HIGH_TOTAL = 5;
+
+  var ring = document.getElementById('ringFill');
+  var r = 62, circumference = 2 * Math.PI * r;
+  ring.style.strokeDasharray = circumference;
+
+  function recompute(){
+    var checkableTotal = checkboxes.length;
+    var checkedNow = document.querySelectorAll('.chk:checked').length;
+
+    var totalTasks = FIXED_DONE + checkableTotal + FIXED_WAIT;
+    var doneTotal = FIXED_DONE + checkedNow + FIXED_WAIT;
+    var pendingLeft = 0;
+
+    var highDone = 0;
+    document.querySelectorAll('tr[data-key]').forEach(function(row){
+      if(row.querySelector('.badge.high') && row.classList.contains('is-done')) highDone++;
+    });
+    var highLeft = Math.max(0, HIGH_TOTAL - highDone);
+
+    document.getElementById('countDone').textContent = doneTotal;
+    document.getElementById('countPending').textContent = pendingLeft;
+    document.getElementById('countWait').textContent = 0;
+    document.getElementById('countHigh').textContent = highLeft;
+
+    var pct = Math.round((doneTotal / totalTasks) * 100);
+    document.getElementById('ringPct').textContent = pct + '%';
+    document.getElementById('ringFrac').textContent = doneTotal + ' / ' + totalTasks;
+    var offset = circumference - (pct/100) * circumference;
+    ring.style.strokeDashoffset = offset;
+
+    document.getElementById('segDone').style.width = (doneTotal/totalTasks*100) + '%';
+    document.getElementById('segPending').style.width = '0%';
+    document.getElementById('segWait').style.width = '0%';
+  }
+
+  ring.style.strokeDashoffset = circumference;
+  requestAnimationFrame(function(){ setTimeout(recompute, 120); });
+
+  // ---- Success Toast (appears below the navbar) ----
+  var toast = document.getElementById('successToast');
+  var toastTimeout;
+  window.addEventListener('load', function(){
+    setTimeout(function(){
+      toast.classList.add('show');
+      clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(function(){
+        toast.classList.remove('show');
+      }, 4200);
+    }, 600);
+  });
+
+  // ---- Scroll progress bar ----
+  var progressBar = document.getElementById('scrollProgress');
+  function updateProgress(){
+    var doc = document.documentElement;
+    var scrollTop = doc.scrollTop || document.body.scrollTop;
+    var height = doc.scrollHeight - doc.clientHeight;
+    var pct = height > 0 ? (scrollTop / height) * 100 : 0;
+    progressBar.style.width = pct + '%';
+  }
+  document.addEventListener('scroll', updateProgress, { passive:true });
+  updateProgress();
+
+  // ---- Reveal on scroll ----
+  var revealEls = document.querySelectorAll('.reveal');
+  var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if('IntersectionObserver' in window && !reduceMotion){
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        if(entry.isIntersecting){
+          entry.target.classList.add('in-view');
+          io.unobserve(entry.target);
+        }
+      });
+    }, { threshold:0.12, rootMargin:'0px 0px -8% 0px' });
+    revealEls.forEach(function(el){ io.observe(el); });
+  } else {
+    revealEls.forEach(function(el){ el.classList.add('in-view'); });
+  }
+
+  // ---- Nav scrollspy ----
+  var navLinks = document.querySelectorAll('.nav-pills a');
+  var trackedSections = document.querySelectorAll('.section[id]');
+  if('IntersectionObserver' in window){
+    var spy = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        if(entry.isIntersecting){
+          var id = entry.target.getAttribute('id');
+          navLinks.forEach(function(link){
+            link.classList.toggle('is-active', link.getAttribute('data-target') === id);
+          });
+        }
+      });
+    }, { rootMargin:'-40% 0px -50% 0px', threshold:0 });
+    trackedSections.forEach(function(sec){ spy.observe(sec); });
+  }
+})();
+</script>
+
+</body>
+</html>
