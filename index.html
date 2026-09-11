@@ -63,6 +63,159 @@
 
   a{color:inherit;}
 
+  /* ---------- Toast Notification (moved lower) ---------- */
+  .toast{
+    position:fixed;
+    top:110px;               /* moved down so it doesn't cover the navbar */
+    left:50%;
+    transform:translateX(-50%) translateY(-24px) scale(0.94);
+    z-index:120;             /* below topbar (50) but still above content */
+    display:flex;
+    align-items:center;
+    gap:14px;
+    padding:16px 22px 16px 18px;
+    border-radius:18px;
+    background:rgba(28,42,36,0.55);
+    -webkit-backdrop-filter: blur(26px) saturate(190%);
+    backdrop-filter: blur(26px) saturate(190%);
+    border:1px solid rgba(90,160,111,0.28);
+    box-shadow:
+      0 22px 55px -14px rgba(0,0,0,0.8),
+      0 0 0 1px rgba(255,255,255,0.04) inset,
+      0 1px 0 rgba(255,255,255,0.09) inset;
+    color:#e9f7ee;
+    font-size:14.5px;
+    font-weight:500;
+    letter-spacing:.2px;
+    opacity:0;
+    pointer-events:none;
+    transition:
+      opacity .6s cubic-bezier(.16,.8,.24,1),
+      transform .6s cubic-bezier(.16,.8,.24,1);
+    max-width:calc(100% - 32px);
+  }
+
+  .toast.show{
+    opacity:1;
+    transform:translateX(-50%) translateY(0) scale(1);
+  }
+
+  .toast::before{
+    content:"";
+    position:absolute;
+    inset:0 0 auto 0;
+    height:1px;
+    border-radius:18px 18px 0 0;
+    background:linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+    pointer-events:none;
+  }
+
+  .toast-icon{
+    width:40px;
+    height:40px;
+    border-radius:50%;
+    flex-shrink:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:radial-gradient(circle at 35% 30%, rgba(90,160,111,0.6), rgba(90,160,111,0.2));
+    border:1px solid rgba(90,160,111,0.45);
+    box-shadow:
+      0 0 20px rgba(90,160,111,0.4),
+      inset 0 1px 0 rgba(255,255,255,0.18);
+  }
+
+  .toast-icon svg{
+    width:21px;
+    height:21px;
+    stroke:#eafff2;
+    stroke-width:2.7;
+    fill:none;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+    filter:drop-shadow(0 0 5px rgba(90,160,111,0.7));
+  }
+
+  .toast-text{
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+    line-height:1.4;
+  }
+
+  .toast-title{
+    font-weight:600;
+    font-size:14.5px;
+    color:#f0fff6;
+  }
+
+  .toast-sub{
+    font-size:12px;
+    color:rgba(200,230,214,0.7);
+    font-weight:400;
+  }
+
+  .toast-progress{
+    position:absolute;
+    bottom:0;
+    right:0;
+    height:2.5px;
+    width:100%;
+    border-radius:0 0 18px 18px;
+    background:linear-gradient(90deg, transparent, rgba(90,160,111,0.9));
+    transform-origin:right center;
+    transform:scaleX(1);
+    opacity:0.9;
+  }
+
+  .toast.show .toast-progress{
+    animation:toastProgress 4.2s linear forwards;
+  }
+
+  @keyframes toastProgress{
+    from{ transform:scaleX(1); }
+    to{ transform:scaleX(0); }
+  }
+
+  /* Responsive tweaks for the toast */
+  @media (max-width:760px){
+    .toast{
+      top:96px;
+      padding:14px 18px 14px 14px;
+      gap:12px;
+      font-size:13.5px;
+      border-radius:16px;
+    }
+    .toast-icon{ width:36px; height:36px; }
+    .toast-icon svg{ width:19px; height:19px; }
+    .toast-title{ font-size:13.5px; }
+    .toast-sub{ font-size:11.5px; }
+  }
+
+  @media (max-width:520px){
+    .toast{
+      top:88px;
+      left:12px;
+      right:12px;
+      transform:translateX(0) translateY(-20px) scale(0.96);
+      max-width:none;
+      padding:13px 15px 13px 13px;
+      gap:10px;
+    }
+    .toast.show{
+      transform:translateX(0) translateY(0) scale(1);
+    }
+    .toast-icon{ width:32px; height:32px; }
+    .toast-icon svg{ width:17px; height:17px; }
+    .toast-title{ font-size:13px; }
+    .toast-sub{ display:none; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .toast{ transition:none; }
+    .toast.show .toast-progress{ animation:none; opacity:0; }
+  }
+
   /* ---------- Glass surfaces ---------- */
   .glass{
     position:relative;
@@ -348,6 +501,20 @@
 </head>
 <body>
 
+<!-- ✅ Toast Notification (positioned below the navbar) -->
+<div class="toast" id="successToast" role="status" aria-live="polite">
+  <div class="toast-icon">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <polyline points="20 6 9 17 4 12"></polyline>
+    </svg>
+  </div>
+  <div class="toast-text">
+    <span class="toast-title">هەموو تاسکەکان تەواو بوون بە سەرکەوتوویی</span>
+    <span class="toast-sub">پیرۆزە! هەموو هەنگاوەکان جێبەجێ کران</span>
+  </div>
+  <div class="toast-progress"></div>
+</div>
+
 <div class="bg-blob b1"></div>
 <div class="bg-blob b2"></div>
 <div class="bg-blob b3"></div>
@@ -456,12 +623,12 @@
           <tr><th class="col-check"></th><th>کار</th><th class="col-priority">ئاستی گرنگی</th></tr>
         </thead>
         <tbody>
-          <tr data-key="t1"><td class="col-check"><input type="checkbox" class="chk"></td><td class="task-name">وەرگرتنەوەی پاسپۆرتە نوێیەکە</td><td class="col-priority" data-label="ئاستی گرنگی"><span class="badge high"><span class="dot"></span>زۆر گرنگ</span></td></tr>
-          <tr data-key="t2"><td class="col-check"><input type="checkbox" class="chk"></td><td class="task-name">سەردانیکردنی زانکۆ و وەرگرتنی کۆپیی ئەسڵیی بڕوانامە</td><td class="col-priority" data-label="ئاستی گرنگی"><span class="badge high"><span class="dot"></span>زۆر گرنگ</span></td></tr>
-          <tr data-key="t3"><td class="col-check"><input type="checkbox" class="chk"></td><td class="task-name">وەرگرتنی ترانسکرێپتی نمرەکان</td><td class="col-priority" data-label="ئاستی گرنگی"><span class="badge high"><span class="dot"></span>زۆر گرنگ</span></td></tr>
-          <tr data-key="t4"><td class="col-check"><input type="checkbox" class="chk"></td><td class="task-name">چوونە ناو سیستەمی TBBS</td><td class="col-priority" data-label="ئاستی گرنگی"><span class="badge med"><span class="dot"></span>گرنگ</span></td></tr>
-          <tr data-key="t5"><td class="col-check"><input type="checkbox" class="chk"></td><td class="task-name">پرینتکردنی بەڵێننامە (Commitment Letter)</td><td class="col-priority" data-label="ئاستی گرنگی"><span class="badge high"><span class="dot"></span>زۆر گرنگ</span></td></tr>
-          <tr data-key="t6"><td class="col-check"><input type="checkbox" class="chk"></td><td class="task-name">واژۆکردنی بەڵێننامەکە بە قەڵەم لە ماڵەوە</td><td class="col-priority" data-label="ئاستی گرنگی"><span class="badge high"><span class="dot"></span>زۆر گرنگ</span></td></tr>
+          <tr data-key="t1"><td class="col-check"><input type="checkbox" class="chk" checked></td><td class="task-name">وەرگرتنەوەی پاسپۆرتە نوێیەکە</td><td class="col-priority" data-label="ئاستی گرنگی"><span class="badge high"><span class="dot"></span>زۆر گرنگ</span></td></tr>
+          <tr data-key="t2"><td class="col-check"><input type="checkbox" class="chk" checked></td><td class="task-name">سەردانیکردنی زانکۆ و وەرگرتنی کۆپیی ئەسڵیی بڕوانامە</td><td class="col-priority" data-label="ئاستی گرنگی"><span class="badge high"><span class="dot"></span>زۆر گرنگ</span></td></tr>
+          <tr data-key="t3"><td class="col-check"><input type="checkbox" class="chk" checked></td><td class="task-name">وەرگرتنی ترانسکرێپتی نمرەکان</td><td class="col-priority" data-label="ئاستی گرنگی"><span class="badge high"><span class="dot"></span>زۆر گرنگ</span></td></tr>
+          <tr data-key="t4"><td class="col-check"><input type="checkbox" class="chk" checked></td><td class="task-name">چوونە ناو سیستەمی TBBS</td><td class="col-priority" data-label="ئاستی گرنگی"><span class="badge med"><span class="dot"></span>گرنگ</span></td></tr>
+          <tr data-key="t5"><td class="col-check"><input type="checkbox" class="chk" checked></td><td class="task-name">پرینتکردنی بەڵێننامە (Commitment Letter)</td><td class="col-priority" data-label="ئاستی گرنگی"><span class="badge high"><span class="dot"></span>زۆر گرنگ</span></td></tr>
+          <tr data-key="t6"><td class="col-check"><input type="checkbox" class="chk" checked></td><td class="task-name">واژۆکردنی بەڵێننامەکە بە قەڵەم لە ماڵەوە</td><td class="col-priority" data-label="ئاستی گرنگی"><span class="badge high"><span class="dot"></span>زۆر گرنگ</span></td></tr>
         </tbody>
       </table>
     </div>
@@ -482,11 +649,11 @@
           <tr><th class="col-check"></th><th>بەڵگەنامە</th><th>کار</th></tr>
         </thead>
         <tbody>
-          <tr data-key="tr1"><td class="col-check"><input type="checkbox" class="chk"></td><td class="task-name">پاسپۆرت</td><td data-label="کار">وەرگێڕانی بۆ زمانی تورکی</td></tr>
-          <tr data-key="tr2"><td class="col-check"><input type="checkbox" class="chk"></td><td class="task-name">بڕوانامە</td><td data-label="کار">وەرگێڕانی بۆ زمانی تورکی</td></tr>
-          <tr data-key="tr3"><td class="col-check"><input type="checkbox" class="chk"></td><td class="task-name">ترانسکرێپت</td><td data-label="کار">وەرگێڕانی بۆ زمانی تورکی</td></tr>
-          <tr data-key="tr4"><td class="col-check"><input type="checkbox" class="chk"></td><td class="task-name">ڕاپۆرتی تەندروستی</td><td data-label="کار">وەرگێڕانی بۆ زمانی تورکی</td></tr>
-          <tr data-key="tr5"><td class="col-check"><input type="checkbox" class="chk"></td><td class="task-name">سەرجەم بەڵگەنامەکان</td><td data-label="کار">داواکردنی ٣ کۆپی بۆ هەر وەرگێڕانێک</td></tr>
+          <tr data-key="tr1"><td class="col-check"><input type="checkbox" class="chk" checked></td><td class="task-name">پاسپۆرت</td><td data-label="کار">وەرگێڕانی بۆ زمانی تورکی</td></tr>
+          <tr data-key="tr2"><td class="col-check"><input type="checkbox" class="chk" checked></td><td class="task-name">بڕوانامە</td><td data-label="کار">وەرگێڕانی بۆ زمانی تورکی</td></tr>
+          <tr data-key="tr3"><td class="col-check"><input type="checkbox" class="chk" checked></td><td class="task-name">ترانسکرێپت</td><td data-label="کار">وەرگێڕانی بۆ زمانی تورکی</td></tr>
+          <tr data-key="tr4"><td class="col-check"><input type="checkbox" class="chk" checked></td><td class="task-name">ڕاپۆرتی تەندروستی</td><td data-label="کار">وەرگێڕانی بۆ زمانی تورکی</td></tr>
+          <tr data-key="tr5"><td class="col-check"><input type="checkbox" class="chk" checked></td><td class="task-name">سەرجەم بەڵگەنامەکان</td><td data-label="کار">داواکردنی ٣ کۆپی بۆ هەر وەرگێڕانێک</td></tr>
         </tbody>
       </table>
     </div>
@@ -507,10 +674,10 @@
           <tr><th class="col-check"></th><th>کار</th><th>شوێن</th></tr>
         </thead>
         <tbody>
-          <tr data-key="e1"><td class="col-check"><input type="checkbox" class="chk"></td><td class="task-name">مۆرکردنی ڕاپۆرتی تەندروستیی وەرگێڕدراو</td><td data-label="شوێن">وەزارەتی تەندروستی</td></tr>
-          <tr data-key="e2"><td class="col-check"><input type="checkbox" class="chk"></td><td class="task-name">مۆرکردنی بڕوانامە و ترانسکرێپتی وەرگێڕدراو</td><td data-label="شوێن">وەزارەتی خوێندنی باڵا</td></tr>
-          <tr data-key="e3"><td class="col-check"><input type="checkbox" class="chk"></td><td class="task-name">لێدانی مۆری دەرەوە بۆ سەرجەم بەڵگەنامە مۆرکراوەکان</td><td data-label="شوێن">فەرمانگەی پەیوەندییە نێودەوڵەتییەکان</td></tr>
-          <tr data-key="e4"><td class="col-check"><input type="checkbox" class="chk"></td><td class="task-name">پەسەندکردنی کۆتایی بەڵگەنامەکان لەگەڵ بەڵێننامە واژۆکراوەکە</td><td data-label="شوێن">کونسوڵگەریی گشتیی تورکیا</td></tr>
+          <tr data-key="e1"><td class="col-check"><input type="checkbox" class="chk" checked></td><td class="task-name">مۆرکردنی ڕاپۆرتی تەندروستیی وەرگێڕدراو</td><td data-label="شوێن">وەزارەتی تەندروستی</td></tr>
+          <tr data-key="e2"><td class="col-check"><input type="checkbox" class="chk" checked></td><td class="task-name">مۆرکردنی بڕوانامە و ترانسکرێپتی وەرگێڕدراو</td><td data-label="شوێن">وەزارەتی خوێندنی باڵا</td></tr>
+          <tr data-key="e3"><td class="col-check"><input type="checkbox" class="chk" checked></td><td class="task-name">لێدانی مۆری دەرەوە بۆ سەرجەم بەڵگەنامە مۆرکراوەکان</td><td data-label="شوێن">فەرمانگەی پەیوەندییە نێودەوڵەتییەکان</td></tr>
+          <tr data-key="e4"><td class="col-check"><input type="checkbox" class="chk" checked></td><td class="task-name">پەسەندکردنی کۆتایی بەڵگەنامەکان لەگەڵ بەڵێننامە واژۆکراوەکە</td><td data-label="شوێن">کونسوڵگەریی گشتیی تورکیا</td></tr>
         </tbody>
       </table>
     </div>
@@ -531,10 +698,10 @@
           <tr><th class="col-check"></th><th>کار</th></tr>
         </thead>
         <tbody>
-          <tr data-key="f1"><td class="col-check"><input type="checkbox" class="chk"></td><td class="task-name">سکانکردنەوەی بەڵێننامە پەسەندکراوەکە</td></tr>
-          <tr data-key="f2"><td class="col-check"><input type="checkbox" class="chk"></td><td class="task-name">سکانکردنەوەی ڕاپۆرتی تەندروستی</td></tr>
-          <tr data-key="f3"><td class="col-check"><input type="checkbox" class="chk"></td><td class="task-name">بارکردنی (Upload) بەڵگەنامەکان لە سیستەمی TBBS</td></tr>
-          <tr data-key="f4"><td class="col-check"><input type="checkbox" class="chk"></td><td class="task-name">داگرتنی دوگمەی سەوزی پەسەندکردن (Confirm)</td></tr>
+          <tr data-key="f1"><td class="col-check"><input type="checkbox" class="chk" checked></td><td class="task-name">سکانکردنەوەی بەڵێننامە پەسەندکراوەکە</td></tr>
+          <tr data-key="f2"><td class="col-check"><input type="checkbox" class="chk" checked></td><td class="task-name">سکانکردنەوەی ڕاپۆرتی تەندروستی</td></tr>
+          <tr data-key="f3"><td class="col-check"><input type="checkbox" class="chk" checked></td><td class="task-name">بارکردنی (Upload) بەڵگەنامەکان لە سیستەمی TBBS</td></tr>
+          <tr data-key="f4"><td class="col-check"><input type="checkbox" class="chk" checked></td><td class="task-name">داگرتنی دوگمەی سەوزی پەسەندکردن (Confirm)</td></tr>
         </tbody>
       </table>
     </div>
@@ -555,9 +722,9 @@
           <tr><th>کار</th><th class="col-status">دۆخ</th></tr>
         </thead>
         <tbody>
-          <tr><td class="task-name">چاوەڕێکردنی ئیمەیڵی YTB</td><td class="col-status" data-label="دۆخ"><span class="badge wait"><span class="dot"></span>چاوەڕێ</span></td></tr>
-          <tr><td class="task-name">بارکردنی (Upload) بڕوانامەی زانکۆ لە سیستەمەکەدا</td><td class="col-status" data-label="دۆخ"><span class="badge wait"><span class="dot"></span>چاوەڕێ</span></td></tr>
-          <tr><td class="task-name">پێشکەشکردنی داواکاریی ڤیزای خوێندن</td><td class="col-status" data-label="دۆخ"><span class="badge wait"><span class="dot"></span>چاوەڕێ</span></td></tr>
+          <tr><td class="task-name">چاوەڕێکردنی ئیمەیڵی YTB</td><td class="col-status" data-label="دۆخ"><span class="badge done"><span class="dot"></span>تەواوکراو</span></td></tr>
+          <tr><td class="task-name">بارکردنی (Upload) بڕوانامەی زانکۆ لە سیستەمەکەدا</td><td class="col-status" data-label="دۆخ"><span class="badge done"><span class="dot"></span>تەواوکراو</span></td></tr>
+          <tr><td class="task-name">پێشکەشکردنی داواکاریی ڤیزای خوێندن</td><td class="col-status" data-label="دۆخ"><span class="badge done"><span class="dot"></span>تەواوکراو</span></td></tr>
         </tbody>
       </table>
     </div>
@@ -589,7 +756,10 @@
   checkboxes.forEach(function(cb){
     var row = cb.closest('tr');
     var key = row.getAttribute('data-key');
-    if(state[key]){ cb.checked = true; row.classList.add('is-done'); }
+    cb.checked = true;
+    row.classList.add('is-done');
+    state[key] = true;
+
     cb.addEventListener('change', function(){
       state[key] = cb.checked;
       row.classList.toggle('is-done', cb.checked);
@@ -598,9 +768,11 @@
     });
   });
 
-  var FIXED_DONE = 4;   // completed permanently in section 1
-  var FIXED_WAIT = 3;   // waiting on section 6
-  var HIGH_TOTAL = 5;   // high-priority items in "tomorrow" section
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+
+  var FIXED_DONE = 4;
+  var FIXED_WAIT = 3;
+  var HIGH_TOTAL = 5;
 
   var ring = document.getElementById('ringFill');
   var r = 62, circumference = 2 * Math.PI * r;
@@ -611,18 +783,18 @@
     var checkedNow = document.querySelectorAll('.chk:checked').length;
 
     var totalTasks = FIXED_DONE + checkableTotal + FIXED_WAIT;
-    var doneTotal = FIXED_DONE + checkedNow;
-    var pendingLeft = checkableTotal - checkedNow;
+    var doneTotal = FIXED_DONE + checkedNow + FIXED_WAIT;
+    var pendingLeft = 0;
 
     var highDone = 0;
     document.querySelectorAll('tr[data-key]').forEach(function(row){
       if(row.querySelector('.badge.high') && row.classList.contains('is-done')) highDone++;
     });
-    var highLeft = HIGH_TOTAL - highDone;
+    var highLeft = Math.max(0, HIGH_TOTAL - highDone);
 
     document.getElementById('countDone').textContent = doneTotal;
     document.getElementById('countPending').textContent = pendingLeft;
-    document.getElementById('countWait').textContent = FIXED_WAIT;
+    document.getElementById('countWait').textContent = 0;
     document.getElementById('countHigh').textContent = highLeft;
 
     var pct = Math.round((doneTotal / totalTasks) * 100);
@@ -632,12 +804,25 @@
     ring.style.strokeDashoffset = offset;
 
     document.getElementById('segDone').style.width = (doneTotal/totalTasks*100) + '%';
-    document.getElementById('segPending').style.width = (pendingLeft/totalTasks*100) + '%';
-    document.getElementById('segWait').style.width = (FIXED_WAIT/totalTasks*100) + '%';
+    document.getElementById('segPending').style.width = '0%';
+    document.getElementById('segWait').style.width = '0%';
   }
 
   ring.style.strokeDashoffset = circumference;
   requestAnimationFrame(function(){ setTimeout(recompute, 120); });
+
+  // ---- Success Toast (appears below the navbar) ----
+  var toast = document.getElementById('successToast');
+  var toastTimeout;
+  window.addEventListener('load', function(){
+    setTimeout(function(){
+      toast.classList.add('show');
+      clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(function(){
+        toast.classList.remove('show');
+      }, 4200);
+    }, 600);
+  });
 
   // ---- Scroll progress bar ----
   var progressBar = document.getElementById('scrollProgress');
